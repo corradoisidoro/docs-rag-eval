@@ -186,6 +186,8 @@ class SQLiteStore:
 
     def search(self, embedding: list[float], top_k: int = 5) -> list[RetrievedChunk]:
         """Return the top-k chunks by cosine similarity."""
+        if isinstance(top_k, bool) or not isinstance(top_k, int) or top_k < 1:
+            raise ValueError("top_k must be a positive integer")
         with self._connect() as connection:
             rows = connection.execute(
                 "SELECT id, source, text, embedding FROM chunks"
