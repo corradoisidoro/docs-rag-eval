@@ -84,6 +84,6 @@ def main() -> None:
     uvicorn.run(
         "docs_rag_eval.api.main:create_app",
         factory=True,
-        host="127.0.0.1",
-        port=8000,
+        host=default_settings.api_host,
+        port=default_settings.api_port,
     )

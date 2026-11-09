@@ -10,10 +10,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
-    """Application settings. Defaults target a local Ollama instance.
+    """Application settings loaded from the process environment or local `.env`.
 
-    Each field is read from the environment variable of the same name
-    (``llm_base_url`` <- ``LLM_BASE_URL``), then from ``.env``.
+    Environment variables take precedence over values in `.env`. The tracked
+    `.env.example` is a template and is never loaded automatically.
     """
 
     model_config = SettingsConfigDict(
@@ -22,19 +22,28 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    llm_base_url: str = "http://localhost:11434/v1"
-    llm_api_key: str = "ollama"
-    llm_timeout_seconds: float = Field(default=120.0, gt=0, allow_inf_nan=False)
-    # "none" disables thinking on reasoning models; empty omits the parameter.
-    llm_reasoning_effort: str = "none"
-    min_relevance_score: float = Field(default=0.5, ge=-1.0, le=1.0)
+    llm_base_url: str
+    llm_api_key: str
+    llm_timeout_seconds: float = Field(gt=0, allow_inf_nan=False)
+    llm_reasoning_effort: str
+    min_relevance_score: float = Field(ge=-1.0, le=1.0)
+    embedding_model: str
+    chat_model: str
+    judge_model: str
+    corpus_dir: Path
+    database_path: Path
+    evaluation_dataset: Path
+    evaluation_reports: Path
+    evaluation_top_k: int = Field(gt=0, le=20)
+    api_host: str
+    api_port: int = Field(gt=0, le=65535)
 
-    embedding_model: str = "nomic-embed-text"
-    chat_model: str = "qwen3.5:9b"
-    corpus_dir: Path = PROJECT_ROOT / "corpus"
-    database_path: Path = PROJECT_ROOT / "data" / "rag.db"
-
-    @field_validator("corpus_dir", "database_path")
+    @field_validator(
+        "corpus_dir",
+        "database_path",
+        "evaluation_dataset",
+        "evaluation_reports",
+    )
     @classmethod
     def _resolve_from_project_root(cls, value: Path) -> Path:
         return value if value.is_absolute() else PROJECT_ROOT / value

@@ -65,9 +65,11 @@ or a statement that the context does not contain the answer.
 ## Quick check (PowerShell)
 
 ```powershell
-curl.exe -X POST http://127.0.0.1:8000/ingest
+curl.exe -X POST http://<API_HOST>:<API_PORT>/ingest
 
-curl.exe -X POST http://127.0.0.1:8000/ask `
+curl.exe -X POST http://<API_HOST>:<API_PORT>/ask `
   -H "Content-Type: application/json" `
   -d '{\"question\": \"What does the top-k parameter control?\", \"top_k\": 1}'
 ```
+
+Replace `<API_HOST>` and `<API_PORT>` with the values from `.env`.

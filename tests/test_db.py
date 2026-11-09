@@ -40,14 +40,14 @@ def test_search_returns_top_k_sorted(tmp_path):
 def test_search_on_empty_store_returns_empty_list(tmp_path):
     store = SQLiteStore(tmp_path / "rag.db")
 
-    assert store.search([1.0, 0.0]) == []
+    assert store.search([1.0, 0.0], top_k=3) == []
 
 
 def test_search_scores_zero_vectors_as_zero(tmp_path):
     store = SQLiteStore(tmp_path / "rag.db")
     store.replace_document("doc.md", "hash", [make_chunk("a")], [[0.0, 0.0]])
 
-    [result] = store.search([1.0, 0.0])
+    [result] = store.search([1.0, 0.0], top_k=3)
 
     assert result.score == 0.0
 

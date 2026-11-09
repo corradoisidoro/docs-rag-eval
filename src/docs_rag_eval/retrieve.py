@@ -11,7 +11,7 @@ def retrieve(
     sqlite_store: SQLiteStore,
     *,
     min_score: float,
-    top_k: int = 5,
+    top_k: int,
 ) -> list[RetrievedChunk]:
     """Return the top-k chunks whose similarity is at least ``min_score``."""
     if not question.strip():

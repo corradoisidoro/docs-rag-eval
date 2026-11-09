@@ -13,7 +13,7 @@ from openai import (
 import docs_rag_eval.api.routes as routes_mod
 from docs_rag_eval.api.main import create_app
 from docs_rag_eval.config import Settings
-from docs_rag_eval.models import Chunk
+from docs_rag_eval.models import Answer, Chunk
 
 
 class FakeModels:
@@ -28,11 +28,31 @@ class FakeModels:
         return f"answer based on: {context[:20]}"
 
 
+class AbstainingFakeModels(FakeModels):
+    def generate(self, question: str, context: str) -> str:
+        return (
+            "The provided context does not contain information about who "
+            "Acme's chief executive officer is."
+        )
+
+
 def make_settings(tmp_path, **overrides) -> Settings:
     values = {
         "database_path": tmp_path / "rag.db",
         "corpus_dir": tmp_path / "corpus",
         "min_relevance_score": 0.0,
+        "evaluation_top_k": 3,
+        "llm_base_url": "https://provider.test/v1",
+        "llm_api_key": "test-key",
+        "llm_timeout_seconds": 1.0,
+        "llm_reasoning_effort": "",
+        "embedding_model": "embedding-model",
+        "chat_model": "chat-model",
+        "judge_model": "judge-model",
+        "evaluation_dataset": tmp_path / "cases.json",
+        "evaluation_reports": tmp_path / "reports",
+        "api_host": "127.0.0.2",
+        "api_port": 8765,
     }
     values.update(overrides)
     return Settings(**values)
@@ -55,6 +75,38 @@ def test_list_models_returns_configured_chat_model(tmp_path):
     response = TestClient(app).get("/v1/models")
 
     assert response.json()["data"][0]["id"] == "my-model"
+
+
+@pytest.mark.parametrize(
+    ("request_top_k", "expected_top_k"),
+    [(None, 3), (7, 7)],
+)
+def test_ask_uses_configured_top_k_unless_request_overrides_it(
+    client,
+    monkeypatch,
+    request_top_k,
+    expected_top_k,
+):
+    received = {}
+
+    def fake_answer_question(**kwargs):
+        received.update(kwargs)
+        return Answer(
+            question=kwargs["question"],
+            answer="answer",
+            citations=[],
+            retrieved_chunks=[],
+        )
+
+    monkeypatch.setattr(routes_mod, "answer_question", fake_answer_question)
+    payload: dict[str, str | int] = {"question": "What is retrieval?"}
+    if request_top_k is not None:
+        payload["top_k"] = request_top_k
+
+    response = client.post("/ask", json=payload)
+
+    assert response.status_code == 200
+    assert received["top_k"] == expected_top_k
 
 
 def test_ingest_then_ask_returns_answer_with_citations(client, tmp_path):
@@ -90,6 +142,29 @@ def test_ingest_then_ask_returns_answer_with_citations(client, tmp_path):
             "score": pytest.approx(1.0),
         }
     ]
+
+
+def test_ask_abstention_returns_empty_citations(client, tmp_path):
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "doc.md").write_text(
+        "Acme engineering handbook details.",
+        encoding="utf-8",
+    )
+    client.app.state.models = AbstainingFakeModels()
+    assert client.post("/ingest").status_code == 200
+
+    response = client.post(
+        "/ask",
+        json={"question": "Who is Acme's chief executive officer?"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["answer"].startswith(
+        "The provided context does not contain information"
+    )
+    assert response.json()["citations"] == []
+    assert response.json()["retrieved_chunks"]
 
 
 def test_ingest_without_corpus_directory_returns_404(client):
@@ -148,7 +223,13 @@ def test_ingest_reindexes_after_embedding_model_change(client, tmp_path):
 
 @pytest.mark.parametrize(
     "payload",
-    [{"question": ""}, {"question": "   "}, {"question": "q", "top_k": 0}, {}],
+    [
+        {"question": ""},
+        {"question": "   "},
+        {"question": "q", "top_k": 0},
+        {"question": "q", "top_k": 21},
+        {},
+    ],
 )
 def test_ask_rejects_invalid_requests(client, payload):
     assert client.post("/ask", json=payload).status_code == 422

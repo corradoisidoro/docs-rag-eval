@@ -26,6 +26,7 @@ htmlcov/
 
 # Application data
 data/
+evals/reports/*.json
 *.db
 *.db-journal
 *.db-wal

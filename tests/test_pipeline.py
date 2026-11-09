@@ -16,14 +16,15 @@ class FixedEmbedder:
 
 
 class FakeChatModel:
-    def __init__(self) -> None:
+    def __init__(self, answer: str = "generated answer") -> None:
         self.calls = 0
         self.last_context = ""
+        self.answer = answer
 
     def generate(self, question: str, context: str) -> str:
         self.calls += 1
         self.last_context = context
-        return "generated answer"
+        return self.answer
 
 
 def make_store(tmp_path) -> SQLiteStore:
@@ -52,6 +53,7 @@ def test_ask_returns_fallback_without_calling_model_when_nothing_is_relevant(
         chat_model=chat_model,
         sqlite_store=store,
         min_score=0.5,
+        top_k=3,
     )
 
     assert chat_model.calls == 0
@@ -70,6 +72,7 @@ def test_ask_uses_relevant_chunks_and_returns_citations_with_scores(tmp_path):
         chat_model=chat_model,
         sqlite_store=store,
         min_score=0.5,
+        top_k=3,
     )
 
     assert chat_model.calls == 1
@@ -87,6 +90,26 @@ def test_ask_uses_relevant_chunks_and_returns_citations_with_scores(tmp_path):
     assert retrieved_chunk.score == pytest.approx(1.0)
 
 
+def test_ask_abstention_has_no_citations_but_retains_retrieved_context(tmp_path):
+    store = make_store(tmp_path)
+    chat_model = FakeChatModel(
+        "The provided context does not contain information about this question."
+    )
+
+    answer = ask(
+        question="unanswerable question",
+        embedder=FixedEmbedder([1.0, 0.0]),
+        chat_model=chat_model,
+        sqlite_store=store,
+        min_score=0.5,
+        top_k=3,
+    )
+
+    assert chat_model.calls == 1
+    assert answer.citations == []
+    assert len(answer.retrieved_chunks) == 1
+
+
 def test_ask_rejects_blank_question(tmp_path):
     with pytest.raises(ValueError):
         ask(
@@ -95,4 +118,5 @@ def test_ask_rejects_blank_question(tmp_path):
             chat_model=FakeChatModel(),
             sqlite_store=make_store(tmp_path),
             min_score=0.0,
+            top_k=3,
         )

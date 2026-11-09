@@ -71,12 +71,14 @@ behave correctly.
 ## E. Quick curl checks (PowerShell)
 
 ```powershell
-curl.exe -X POST http://127.0.0.1:8000/ingest
+curl.exe -X POST http://<API_HOST>:<API_PORT>/ingest
 
-curl.exe -X POST http://127.0.0.1:8000/ask `
+curl.exe -X POST http://<API_HOST>:<API_PORT>/ask `
   -H "Content-Type: application/json" `
   -d '{\"question\": \"What is the maximum length of a function at Acme?\", \"top_k\": 5}'
 ```
+
+Replace `<API_HOST>` and `<API_PORT>` with the values from `.env`.
 
 ## F. Re-ingestion checks
 

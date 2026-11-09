@@ -1,0 +1,74 @@
+[
+  {
+    "question": "What is RAG?",
+    "expected_answer": "RAG retrieves external information and provides it as context to an LLM.",
+    "should_answer": true,
+    "expected_sources": ["rag-fundamentals.md"]
+  },
+  {
+    "question": "Does a RAG system need to retrain its language model when the knowledge base changes?",
+    "expected_answer": "No. RAG does not require retraining the language model when the knowledge base changes.",
+    "should_answer": true,
+    "expected_sources": ["rag-fundamentals.md"]
+  },
+  {
+    "question": "What is an embedding?",
+    "expected_answer": "An embedding is a numerical representation of text.",
+    "should_answer": true,
+    "expected_sources": ["rag-fundamentals.md"]
+  },
+  {
+    "question": "Why can embeddings find semantically related text even when the words differ?",
+    "expected_answer": "Embeddings represent semantic meaning, allowing search beyond exact keyword matches.",
+    "should_answer": true,
+    "expected_sources": ["rag-fundamentals.md"]
+  },
+  {
+    "question": "How many approvals does an Acme pull request need, and who must provide one?",
+    "expected_answer": "Every pull request needs two approvals, and at least one must come from an owner of code listed in CODEOWNERS.",
+    "should_answer": true,
+    "expected_sources": ["acme-engineering-handbook.md"]
+  },
+  {
+    "question": "What are Acme's minimum overall and domain-layer test coverage requirements?",
+    "expected_answer": "Overall line coverage must be at least 80%, and the domain layer must reach at least 90%.",
+    "should_answer": true,
+    "expected_sources": ["acme-engineering-handbook.md"]
+  },
+  {
+    "question": "What are Acme's default and maximum API page sizes?",
+    "expected_answer": "The default page size is 25 items and the maximum is 100; requests above 100 are clamped to 100.",
+    "should_answer": true,
+    "expected_sources": ["acme-engineering-handbook.md"]
+  },
+  {
+    "question": "How long do Acme access and refresh tokens last?",
+    "expected_answer": "Access tokens expire after 15 minutes. Refresh tokens expire after 7 days and are rotated on every use.",
+    "should_answer": true,
+    "expected_sources": ["acme-engineering-handbook.md"]
+  },
+  {
+    "question": "What is Acme's retry policy for transient failures?",
+    "expected_answer": "Use three total attempts with exponential backoff starting at 200 ms, plus or minus 20% jitter. Retry timeouts, connection errors, and 502, 503, or 504 responses, but never 4xx errors.",
+    "should_answer": true,
+    "expected_sources": ["acme-engineering-handbook.md"]
+  },
+  {
+    "question": "What should happen when an Acme test fails intermittently?",
+    "expected_answer": "Quarantine the flaky test within 24 hours, then fix or delete it within 10 working days.",
+    "should_answer": true,
+    "expected_sources": ["acme-engineering-handbook.md"]
+  },
+  {
+    "question": "Who is Acme's chief executive officer?",
+    "expected_answer": "The supplied documents do not identify Acme's chief executive officer, so the system should abstain.",
+    "should_answer": false,
+    "expected_sources": []
+  },
+  {
+    "question": "What is Acme's employee vacation policy?",
+    "expected_answer": "The supplied documents do not specify an employee vacation policy, so the system should abstain.",
+    "should_answer": false,
+    "expected_sources": []
+  }
+]

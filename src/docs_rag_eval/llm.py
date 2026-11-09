@@ -27,8 +27,8 @@ class OpenAICompatibleModels:
         api_key: str,
         chat_model: str,
         embedding_model: str,
-        timeout: float = 120.0,
-        reasoning_effort: str | None = None,
+        timeout: float,
+        reasoning_effort: str,
     ) -> None:
         self.client = OpenAI(base_url=base_url, api_key=api_key, timeout=timeout)
         self.chat_model = chat_model

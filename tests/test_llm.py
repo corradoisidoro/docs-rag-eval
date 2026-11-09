@@ -17,13 +17,14 @@ class FakeCompletions:
 
 
 def make_models(
-    reasoning_effort: str | None,
+    reasoning_effort: str,
 ) -> tuple[OpenAICompatibleModels, FakeCompletions]:
     models = OpenAICompatibleModels(
         base_url="http://localhost:1/v1",
         api_key="test",
         chat_model="test-model",
         embedding_model="test-embedding",
+        timeout=1.0,
         reasoning_effort=reasoning_effort,
     )
     completions = FakeCompletions()
@@ -48,16 +49,8 @@ def test_generate_omits_reasoning_effort_when_empty():
     assert completions.kwargs["extra_body"] is None
 
 
-def test_generate_omits_reasoning_effort_when_none():
-    models, completions = make_models(None)
-
-    models.generate("question", "context")
-
-    assert completions.kwargs["extra_body"] is None
-
-
 def test_generate_puts_question_and_context_in_the_prompt():
-    models, completions = make_models(None)
+    models, completions = make_models("")
 
     models.generate("What is X?", "X is a letter.")
 
@@ -72,6 +65,8 @@ def test_embed_forwards_model_and_texts():
         api_key="test",
         chat_model="test-model",
         embedding_model="test-embedding",
+        timeout=1.0,
+        reasoning_effort="",
     )
 
     class FakeEmbeddings:
@@ -99,7 +94,7 @@ def test_embed_forwards_model_and_texts():
 
 
 def test_generate_returns_empty_string_when_response_content_is_none():
-    models, completions = make_models(None)
+    models, completions = make_models("")
 
     completions.create = lambda **kwargs: SimpleNamespace(
         choices=[

@@ -85,6 +85,7 @@ def test_retrieve_rejects_blank_question(tmp_path):
             embedder=FixedEmbedder([1.0, 0.0]),
             sqlite_store=make_store(tmp_path),
             min_score=0.0,
+            top_k=3,
         )
 
 

@@ -45,7 +45,7 @@ class SQLiteStore:
     and sufficient for a small corpus.
     """
 
-    def __init__(self, database_path: str | Path = "data/rag.db") -> None:
+    def __init__(self, database_path: str | Path) -> None:
         self.database_path = Path(database_path)
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
@@ -184,7 +184,7 @@ class SQLiteStore:
             if metadata is not None:
                 _set_index_metadata(connection, metadata)
 
-    def search(self, embedding: list[float], top_k: int = 5) -> list[RetrievedChunk]:
+    def search(self, embedding: list[float], top_k: int) -> list[RetrievedChunk]:
         """Return the top-k chunks by cosine similarity."""
         if isinstance(top_k, bool) or not isinstance(top_k, int) or top_k < 1:
             raise ValueError("top_k must be a positive integer")

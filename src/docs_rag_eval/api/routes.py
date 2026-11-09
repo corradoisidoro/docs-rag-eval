@@ -77,7 +77,9 @@ def ask(
         chat_model=models,
         sqlite_store=store,
         min_score=settings.min_relevance_score,
-        top_k=payload.top_k,
+        top_k=(
+            payload.top_k if payload.top_k is not None else settings.evaluation_top_k
+        ),
     )
 
     return AskResponse(
